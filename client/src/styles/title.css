@@ -1,0 +1,15 @@
+.title_cont {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.title_text {
+    color: #fff;
+    font-size: 36px;
+    font-weight: bold;
+    text-align: center;
+}
