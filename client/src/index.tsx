@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App';
+import Counter from './Counter';
 import Overlay from './controls/Overlay';
 import Background from './Background';
 import NeverSleep from './NeverSleep/NeverSleep';
@@ -27,7 +28,8 @@ function Container() {
     endColor: "fff",
     titleColor: "fff",
     typing: false,
-    bgHorizontal: false
+    bgHorizontal: false,
+    targetTime: (Date.now()-10000)
   });
   const [newChanges,setNC] = useState(new Array<any>());
   const [changing,setChanging] = useState(false);
@@ -73,7 +75,8 @@ function Container() {
       <NeverSleep />
       <Background globalState={globalState} updateGlobal={updateGlobal}/>
       <Title globalState={globalState} updateGlobal={updateGlobal}/>
-      <App globalState={globalState} updateGlobal={updateGlobal}/>
+      {/* <App globalState={globalState} updateGlobal={updateGlobal}/> */}
+      <Counter globalState={globalState} updateGlobal={updateGlobal}/>
       <Overlay globalState={globalState} updateGlobal={updateGlobal}/>
     </socketContext.Provider>
   )

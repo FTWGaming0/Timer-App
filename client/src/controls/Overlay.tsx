@@ -142,7 +142,7 @@ function Overlay(props: any) {
                                 ""
                             )}
                             <div className="controls-mid">
-                                {(panelNum === 0)?(<NewTime persistState={newTimeState} closeOverlay={closeOverlay} changeState={updateTimePersist} />):("")}
+                                {(panelNum === 0)?(<NewTime persistState={newTimeState} closeOverlay={closeOverlay} changeState={updateTimePersist} globalState={props.globalState} updateGlobal={props.updateGlobal}/>):("")}
                                 {(panelNum === 1)?(<NewBG persistState={newBGState} changeState={updateBGPersist} globalState={props.globalState} updateGlobal={props.updateGlobal}/>):("")}
                                 {(panelNum === 2)?(<NewBGI horiz={newBGState.fitHorizontal} update={updateBGUPersist} globalState={props.globalState} updateGlobal={props.updateGlobal}/>):("")}
                                 {(panelNum === 3)?(<TimerDisplay persistState={newTimerDisp} changeState={updateTimerDisp} globalState={props.globalState} updateGlobal={props.updateGlobal}/>):("")}

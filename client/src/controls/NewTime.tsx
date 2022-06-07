@@ -4,6 +4,8 @@ import { socketContext } from "../contexts/socket";
 function NewTime(props: any) {
 
     const persisted: { days: number, hours: number, minutes: number, seconds: number, timeOpt: number } = props.persistState;
+    const globalState: any = props.globalState;
+    const updateGlobal: (props: any) => void = props.updateGlobal;
 
     const [uDays,setDays] = useState(persisted.days);
     const [uHours,setHours] = useState(persisted.hours);
@@ -11,7 +13,7 @@ function NewTime(props: any) {
     const [uSeconds,setSeconds] = useState(persisted.seconds);
     const socket = useContext(socketContext);
     const [timeOption,setTO] = useState(persisted.timeOpt);
-    const [targetTime,setTT] = useState(new Date());
+    const [targetTime,setTT] = useState(new Date(globalState.targetTime));
 
     const [sentPing,setSP] = useState({ time: 0, updated: false });
     const [recPing,setRP] = useState({ time: 0, updated: false, serv_time: 0 });
@@ -79,6 +81,7 @@ function NewTime(props: any) {
             }
 
             socket.emit(`updatetimer`,`set ${newTime}`);
+            updateGlobal({ targetTime: newTime });
             props.closeOverlay();
         }
     };
