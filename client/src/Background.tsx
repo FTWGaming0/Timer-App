@@ -22,8 +22,8 @@ function Background(props: any) {
                     setUI(true);
                     setHorizontal(args[2] === "true");
                     args.shift(); args.shift(); args.shift();
-                    setImage(`http://${window.location.hostname}:3002/uploads/${args.join(" ")}`);
-                    //setImage(`http://${window.location.hostname}:${window.location.port}/uploads/${args.join(" ")}`);
+                    //setImage(`http://${window.location.hostname}:3002/uploads/${args.join(" ")}`);
+                    setImage(`http://${window.location.hostname}:${window.location.port}/uploads/${args.join(" ")}`);
                 } else if (args[1] === "false") {
                     setUI(true);
                     setHorizontal(args[2] === "true");
