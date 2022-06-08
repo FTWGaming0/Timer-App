@@ -52,6 +52,7 @@ function UploadBGI(props: any) {
         formData.append('File',selectedFile);
         fetch(
             `http://${window.location.hostname}:${window.location.port}/upload/`,
+            // `http://${window.location.hostname}:3002/upload/`,
             {
                 method: 'POST',
                 body: formData,
