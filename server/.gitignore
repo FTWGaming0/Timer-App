@@ -1,3 +1,4 @@
 #dependencies and build
-/dist
-/node_modules
+dist/public
+dist/settings.conf
+node_modules
