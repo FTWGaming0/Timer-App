@@ -14,8 +14,8 @@ function Background(props: any) {
 
     const handleSConnect = useCallback(() => { socket.emit(`background`,`get`); },[socket]) // handle Socket Connect
     const handleSBGChange = useCallback((data: string) => { // handle Socket Back-Ground Change
-        // `background`,`[Use Image :  true], [Local WebServer?], [Horizontal?], [Image Name/Link]
-        // `background`,`[Use Color : false], [Hex Code]`
+        // `background`,`[true  == Use Image], [Local WebServer?], [Horizontal?], [Image Name/Link]
+        // `background`,`[false == Use Color], [Hex Code]`
         console.log(`[BACKGROUND CHANGE]: ${data}`);
         let args: string[] = data.toLowerCase().split(" ");
         switch(args[0]) {
