@@ -12,33 +12,33 @@ function Background(props: any) {
 
     const updateGlobal: (props: any) => void = props.updateGlobal;
 
-    const handleSConnect = useCallback(() => { socket.emit(`background`,`get`); },[socket])
-    const handleSBGChange = useCallback((data: string) => {
+    const handleSConnect = useCallback(() => { socket.emit(`background`,`get`); },[socket]) // handle Socket Connect
+    const handleSBGChange = useCallback((data: string) => { // handle Socket Back-Ground Change
         console.log(`[BACKGROUND CHANGE]: ${data}`);
         let args: string[] = data.toLowerCase().split(" ");
         switch(args[0]) {
-            case "true":
-                if(args[1] === "true") {
+            case "true": // `background`,`[TRUE] bool bool str` => [Use Image]
+                if(args[1] === "true") { // `background`,`true TRUE bool str` => [Image is on host webserver]
                     setUI(true);
-                    setHorizontal(args[2] === "true");
+                    setHorizontal(args[2] === "true"); // `background`,`true true [TRUE] str` => [Image should fit to screen horizontally]
                     args.shift(); args.shift(); args.shift();
-                    //setImage(`http://${window.location.hostname}:3002/uploads/${args.join(" ")}`);
-                    setImage(`http://${window.location.hostname}:${window.location.port}/uploads/${args.join(" ")}`);
-                } else if (args[1] === "false") {
+                    // setImage(`http://${window.location.hostname}:3002/uploads/${args.join(" ")}`); // `background`,`true true bool [STR]` => [Image to use]
+                    setImage(`http://${window.location.hostname}:${window.location.port}/uploads/${args.join(" ")}`); // `background`,`true true bool [STR]` => [Image to use]
+                } else if (args[1] === "false") { // `background`,`true FALSE bool str` => [Image is hosted externally.]
                     setUI(true);
-                    setHorizontal(args[2] === "true");
-                    args.shift(); args.shift(); args.shift();
-                    setImage(args.join(" "));
+                    setHorizontal(args[2] === "true"); // `background`,`true false [TRUE] str` => [Image should fit to screen horizontally]
+                    args.shift(); args.shift(); args.shift(); // Shifting first three entries from args for clear join.
+                    setImage(args.join(" ")); // `background`,`true false bool [STR]` => [Image to use]
                 }
                 break;
-            case "false":
+            case "false": // `background`,`[FALSE] str` => [Use Solid Color]
                 setUI(false);
-                setSolid(args[1]);
+                setSolid(args[1]); // `background`,`false [STR]` => [Color to use]
                 break;
         }
     },[setImage,setSolid,setUI])
 
-    const handleSBGHU = useCallback((data: any)=>{
+    const handleSBGHU = useCallback((data: any)=>{ // handle Socket Back-Ground Horizontal Update
         let isTrue: boolean = (data === true);
         setHorizontal(isTrue);
         updateGlobal({bgHorizontal: isTrue});

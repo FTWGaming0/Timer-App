@@ -93,6 +93,8 @@ function NewTime(props: any) {
     function decM() { if(uMinutes-1 < 0) { setMinutes(59); decH(); } else setMinutes(uMinutes-1); };
     function decS() { if(uSeconds-1 < 0) { setSeconds(59); decM(); } else setSeconds(uSeconds-1); };
 
+    const [bDayAdd,setbDA] = useState(false);
+
     const handlePersistState = useCallback((values: {"days": number, "hours": number, "minutes": number, "seconds": number, "timeOpt": number}) => {
         changePersist( values.days, values.hours, values.minutes, values.seconds, values.timeOpt )
     },[changePersist])
@@ -123,12 +125,12 @@ function NewTime(props: any) {
     const subDay = useCallback(() => {
         if(uDays > 0)
             setDays(uDays-1);
-        
     },[setDays,uDays])
 
     const addDay = useCallback(() => {
-        setDays(d => d+1);
-    },[setDays])
+        if(bDayAdd) setDays(d => d+2);
+        else setDays(d => d+1);
+    },[setDays,bDayAdd])
 
     useEffect(() => {
         handlePersistState({
@@ -152,7 +154,8 @@ function NewTime(props: any) {
         newTime += uMinutes*1000*60;
         newTime += uSeconds*1000;
 
-        if(timeOption === 1 && ((newTime-Date.now()) < 0)) setDays(d => d+1);
+        if(timeOption === 1 && ((newTime-Date.now()) < 0)) { setbDA(true); newTime += 1000*60*60*24; }
+        else { setbDA(false); };
 
         setTT(new Date(newTime));
     },[uDays,uHours,uMinutes,uSeconds,timeOption,handlePersistState,setTT,setDays]);
