@@ -75,8 +75,8 @@ function Container() {
       <NeverSleep />
       <Background globalState={globalState} updateGlobal={updateGlobal}/>
       <Title globalState={globalState} updateGlobal={updateGlobal}/>
-      {/* <App globalState={globalState} updateGlobal={updateGlobal}/> */}
-      <Counter globalState={globalState} updateGlobal={updateGlobal}/>
+      <App globalState={globalState} updateGlobal={updateGlobal}/>
+      {/* <Counter globalState={globalState} updateGlobal={updateGlobal}/> */}
       <Overlay globalState={globalState} updateGlobal={updateGlobal}/>
     </socketContext.Provider>
   )
