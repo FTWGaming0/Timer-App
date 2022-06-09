@@ -72,6 +72,7 @@ apiserver.post('/upload', (req, res) => __awaiter(void 0, void 0, void 0, functi
             });
         }
         fs.access(path.join(process.cwd(), `./public/uploads/${file.name}`), (err) => {
+            let pastimgs = cfg_mngr_1.persist_data.pastimgs;
             if (err) {
                 console.log(`\x1b[32m[API UPLOAD]\x1b[0m: \x1b[36m${file.name}\x1b[0m \x1b[33m${file.size}\x1b[0m`);
                 fs.writeFile(path.join(process.cwd(), `./public/uploads/${file.name}`), file.data, () => {
@@ -79,10 +80,20 @@ apiserver.post('/upload', (req, res) => __awaiter(void 0, void 0, void 0, functi
                     (0, cfg_mngr_1.update)({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
                     exports.ioserver.emit(`background`, `true true ${cfg_mngr_1.configuration.bgHorizontal} ${file.name}`);
                     res.write(`File Upload Complete`);
+                    pastimgs.push(file.name);
+                    (0, cfg_mngr_1.yaml_update)({ pastimgs: pastimgs });
                     res.end();
                 });
                 return;
             }
+            if (pastimgs.indexOf(file.name, 0) !== -1) {
+                pastimgs.splice(pastimgs.indexOf(file.name), 1);
+                pastimgs.push(file.name);
+            }
+            else {
+                pastimgs.push(file.name);
+            }
+            (0, cfg_mngr_1.yaml_update)({ pastimgs: pastimgs });
             exports.ioserver.emit(`background`, `true true ${cfg_mngr_1.configuration.bgHorizontal} ${file.name}`);
             (0, cfg_mngr_1.update)({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
             res.write(`File already exists in server directory with requested file name.`);

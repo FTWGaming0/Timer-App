@@ -32,9 +32,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.update = exports.init = exports.configuration = void 0;
+exports.yaml_update = exports.update = exports.init = exports.persist_data = exports.configuration = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const YAML = __importStar(require("yaml"));
 exports.configuration = {
     targetTime: Date.now() + 3600000,
     bgUseImage: false,
@@ -49,6 +50,9 @@ exports.configuration = {
     title: "TIMER TITLE",
     titleCol: "fff",
     endCol: "fff",
+};
+exports.persist_data = {
+    pastimgs: new Array()
 };
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -73,7 +77,7 @@ function init() {
             try {
                 fs.access('./settings.conf', (err) => __awaiter(this, void 0, void 0, function* () {
                     if (err) {
-                        console.log(`[INITIALIZATION WARN] Configuration file ${path.join(__dirname, "./settings.conf")} missing. Writing default configurations in place of config file.`);
+                        console.log(`[INITIALIZATION WARN] Configuration file ${path.join(process.cwd(), "./settings.conf")} missing. Writing default configurations in place of config file.`);
                         fs.writeFileSync(`./settings.conf`, JSON.stringify(exports.configuration));
                         resolve(exports.configuration);
                         return;
@@ -92,7 +96,7 @@ function init() {
                     }
                     Object.keys(exports.configuration).forEach(key => {
                         if (filecontents[key] === undefined) {
-                            console.log(`[INITIALIZATION INFO] Config file missing ${key}. Using default value: ${exports.configuration[key]}`);
+                            console.log(`[INITIALIZATION INFO]: Config file missing ${key}. Using default value: ${exports.configuration[key]}`);
                             filecontents[key] = exports.configuration[key];
                         }
                         else {
@@ -101,13 +105,47 @@ function init() {
                     });
                     fs.writeFileSync('./settings.conf', JSON.stringify(filecontents));
                     console.log(`[INITIALIZATION SUCCESS]: Current Configuraitons\n\n`, exports.configuration, `\n`);
-                    resolve(exports.configuration);
                 }));
             }
             catch (e) {
                 console.log(`Failed to access current directory. Settings configuration unreachable.\nExiting at code 5.`);
-                reject(e);
+                process.exit(5);
             }
+            try {
+                fs.access(`persist_data.yml`, (err) => __awaiter(this, void 0, void 0, function* () {
+                    if (err) {
+                        fs.writeFileSync(`persist_data.yml`, YAML.stringify(``), `utf8`);
+                        console.log(`File doesn't exist. Creating blank YAML document.`);
+                        return;
+                    }
+                    else {
+                        let ymlcontent;
+                        try {
+                            ymlcontent = YAML.parse(fs.readFileSync(`persist_data.yml`, `utf8`));
+                            console.log(`[INITIALIZATION SUCCESS]: YAML Parse Success.`);
+                        }
+                        catch (e) {
+                            console.log(`[INITIALIZATION ERROR]: Failed to parse YAML from persist_data.yml. Overwriting with blank YAML document.`);
+                            fs.writeFileSync(`persist_data.yml`, YAML.stringify(``), `utf8`);
+                            return;
+                        }
+                        console.log(ymlcontent);
+                        Object.keys(exports.persist_data).forEach(key => { if (ymlcontent[key] === undefined) {
+                            console.log(`Persist_Data is missing key ${key}. Writing default of `, exports.persist_data[key]);
+                        }
+                        else {
+                            exports.persist_data[key] == ymlcontent[key];
+                            console.log(exports.persist_data[key]);
+                        } });
+                        fs.writeFileSync(`persist_data.yml`, YAML.stringify(exports.persist_data), `utf8`);
+                    }
+                }));
+            }
+            catch (e) {
+                console.log(`Could not access persist_data.yml file. Exiting at code 5.`);
+                process.exit(5);
+            }
+            resolve(exports.configuration);
         });
     });
 }
@@ -118,7 +156,27 @@ function update(configs) {
         Object.keys(exports.configuration).forEach(key => { if (configs[key] !== undefined) {
             exports.configuration[key] = configs[key];
         } ; });
-        fs.writeFileSync(`./settings.conf`, JSON.stringify(exports.configuration));
+        fs.writeFileSync(`./settings.conf`, JSON.stringify(exports.configuration), `utf8`);
     });
 }
 exports.update = update;
+function yaml_update(newvars) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Update persist_data with new data only if persist_data already contains key.
+        let temp = exports.persist_data;
+        Object.keys(exports.persist_data).forEach(key => { if (newvars[key] !== undefined) {
+            temp[key] = newvars[key];
+        } ; });
+        // Shift past image array until length <= 5 if length > 5
+        if (temp.pastimgs.length > 5) {
+            for (let i = 0; i > temp.pastimgs.length - 5; i++) {
+                temp.pastimgs.shift();
+            }
+            ;
+        }
+        ;
+        exports.persist_data = temp;
+        fs.writeFileSync(`persist_data.yml`, YAML.stringify(exports.persist_data), `utf8`);
+    });
+}
+exports.yaml_update = yaml_update;

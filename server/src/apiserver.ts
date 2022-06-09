@@ -1,4 +1,4 @@
-import { update, configuration as configs } from "./cfg_mngr";
+import { update, configuration as configs, persist_data, yaml_update } from "./cfg_mngr";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
@@ -35,6 +35,7 @@ apiserver.post('/upload', async (req: any, res: any) => {
             })
         }
         fs.access(path.join(process.cwd(),`./public/uploads/${file.name}`), (err) => {
+            let pastimgs: string[] = persist_data.pastimgs;
             if(err) {
                 console.log(`\x1b[32m[API UPLOAD]\x1b[0m: \x1b[36m${file.name}\x1b[0m \x1b[33m${file.size}\x1b[0m`);
                 fs.writeFile(path.join(process.cwd(),`./public/uploads/${file.name}`),file.data,() => {
@@ -42,10 +43,19 @@ apiserver.post('/upload', async (req: any, res: any) => {
                     update({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
                     ioserver.emit(`background`,`true true ${configs.bgHorizontal} ${file.name}`);
                     res.write(`File Upload Complete`);
+                    pastimgs.push(file.name);
+                    yaml_update({ pastimgs: pastimgs });
                     res.end();
                 });
                 return;
             }
+            if(pastimgs.indexOf(file.name,0) !== -1) {
+                pastimgs.splice(pastimgs.indexOf(file.name),1);
+                pastimgs.push(file.name);
+            } else {
+                pastimgs.push(file.name);
+            }
+            yaml_update({ pastimgs: pastimgs });
             ioserver.emit(`background`,`true true ${configs.bgHorizontal} ${file.name}`);
             update({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
             res.write(`File already exists in server directory with requested file name.`); 

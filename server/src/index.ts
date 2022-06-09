@@ -50,7 +50,7 @@ async function run() {
         console.log(`\n\x1b[36mApplication is being hosted at port \x1b[32m${configs.serverPort}\x1b[0m,\x1b[33m but the Local IP of this machine could not be determined.\x1b[0m\n`);
     }
 
-    open(`http://localhost:${configs.serverPort}`);
+    //open(`http://localhost:${configs.serverPort}`);
 }
 
 run();

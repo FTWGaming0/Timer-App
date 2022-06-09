@@ -1,4 +1,5 @@
 #dependencies and build
 dist/public
 dist/settings.conf
+dist/persist_data.yml
 node_modules
