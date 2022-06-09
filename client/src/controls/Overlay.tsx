@@ -15,7 +15,6 @@ function Overlay(props: any) {
     const panelAmt = 4;
 
     const globalState: { color: string, size: number, endTxt: string, title: string, endColor: string, titleColor: string, typing: boolean } = props.globalState;
-    const [bInFullScreen,setBIF] = useState(window.innerHeight < 310);
 
     const [newTimeState,setTimeState] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, timeOpt: 0 });
     const [newBGState,setBGState] = useState({ useImg: false, imageaddr: "", solidColor: "", fitHorizontal: false });
@@ -42,7 +41,6 @@ function Overlay(props: any) {
 
     function closeOverlay() {
         if(!cooldown) {
-            if(bInFullScreen) { document.exitFullscreen(); setBIF(false); }
             setToggle(false);
             setCooldown(true);
             setTimeout(() => {
@@ -53,7 +51,7 @@ function Overlay(props: any) {
 
     function handleClick() {
         if(!toggle && !cooldown) {
-            if(window.innerHeight < 310) { document.body.requestFullscreen(); setBIF(true); }
+            if(window.innerHeight < 310) { document.body.requestFullscreen(); }
             setToggle(true);
             setCooldown(true);
             setTimeout(() => {
