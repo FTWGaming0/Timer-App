@@ -17,11 +17,11 @@ export let configuration = {
     endCol: "fff",
 };
 export let persist_data = {
-    pastimgs: new Array<string>()
+    pastimgs: new Array<string>(),
 }
 
 export async function init() {
-    return new Promise<any>((resolve,reject) => {
+    return new Promise<any>(async (resolve,reject) => {
         if(!fs.existsSync(path.join(process.cwd(),'./public'))) {
             console.log(`[INITIALIZATION WARN]: Public folder missing. Creating new directory.`);
             fs.mkdir(path.join(process.cwd(),'./public'), (err) => {
@@ -35,12 +35,12 @@ export async function init() {
                 };
             });
         }
+
         try {
             fs.access('./settings.conf', async (err) => {
                 if(err) {
                     console.log(`[INITIALIZATION WARN] Configuration file ${path.join(process.cwd(),"./settings.conf")} missing. Writing default configurations in place of config file.`);
-                    fs.writeFileSync(`./settings.conf`,JSON.stringify(configuration))
-                    resolve(configuration);
+                    fs.writeFileSync(`./settings.conf`,JSON.stringify(configuration));
                     return;
                 };
 
@@ -51,8 +51,7 @@ export async function init() {
                     filecontents = JSON.parse(fs.readFileSync(`./settings.conf`,`utf8`));
                 } catch(e) {
                     console.log(`[INITIALIZATION ERROR] Unable to parse JSON from settings config. Overwriting file with default configurations.`);
-                    fs.writeFileSync(`./settings.conf`,JSON.stringify(configuration))
-                    resolve(configuration);
+                    fs.writeFileSync(`./settings.conf`,JSON.stringify(configuration));
                     return;
                 }
 
@@ -66,36 +65,46 @@ export async function init() {
                 });
 
                 fs.writeFileSync('./settings.conf',JSON.stringify(filecontents));
-                console.log(`[INITIALIZATION SUCCESS]: Current Configuraitons\n\n`,configuration,`\n`);
-            })
+                console.log(`[INITIALIZATION SUCCESS]: Settings file loaded successfully.`);
+            });
         } catch(e) {
             console.log(`Failed to access current directory. Settings configuration unreachable.\nExiting at code 5.`)
             process.exit(5);
         }
 
         try {
-            fs.access(`persist_data.yml`, async (err) => {
+            fs.access('./persist_data.yml', async (err) => {
                 if(err) {
-                    fs.writeFileSync(`persist_data.yml`,YAML.stringify(``),`utf8`);
-                    console.log(`File doesn't exist. Creating blank YAML document.`);
+                    console.log(`[INITIALIZATION WARN] Data Persistence file ${path.join(process.cwd(),"./persist_data.yml")} missing. Writing default configurations.`);
+                    fs.writeFileSync(`./persist_data.yml`,YAML.stringify(persist_data));
                     return;
-                } else {
-                    let ymlcontent: any;
-                    try {
-                        ymlcontent = YAML.parse(fs.readFileSync(`persist_data.yml`,`utf8`));
-                        console.log(`[INITIALIZATION SUCCESS]: YAML Parse Success.`);
-                    } catch(e) {
-                        console.log(`[INITIALIZATION ERROR]: Failed to parse YAML from persist_data.yml. Overwriting with blank YAML document.`);
-                        fs.writeFileSync(`persist_data.yml`,YAML.stringify(``),`utf8`);
-                        return;
-                    }
-                    console.log(ymlcontent);
-                    Object.keys(persist_data).forEach(key => { if(ymlcontent[key] === undefined) { console.log(`Persist_Data is missing key ${key}. Writing default of `,(<any> persist_data)[key]); } else { (<any> persist_data)[key] == ymlcontent[key]; console.log((<any> persist_data)[key]) } });
-                    fs.writeFileSync(`persist_data.yml`,YAML.stringify(persist_data),`utf8`);
+                };
+
+                console.log(`[INITIALIZATION INFO] Persistence file exists. Reading data from file.`);
+                let ymlcontents: any = {};
+                
+                try {
+                    ymlcontents = YAML.parse(fs.readFileSync(`./persist_data.yml`,`utf8`));
+                } catch(e) {
+                    console.log(`[INITIALIZATION ERROR] Unable to parse YAML from persistence file. Overwriting file with default configurations.`);
+                    fs.writeFileSync(`./persist_data.yml`,YAML.stringify(persist_data));
+                    return;
                 }
+
+                Object.keys(persist_data).forEach(key => {
+                    if(ymlcontents[key] === undefined) {
+                        console.log(`[INITIALIZATION INFO]: Config file missing ${key}. Using default value: ${(<any> persist_data)[key]}`);
+                        ymlcontents[key] = (<any> persist_data)[key];
+                    } else {
+                        (<any> persist_data)[key] = ymlcontents[key];
+                    };
+                });
+
+                fs.writeFileSync('./persist_data.yml',YAML.stringify(persist_data));
+                console.log(`[INITIALIZATION SUCCESS]: Loaded persist_data.yml file.\n`);
             })
         } catch(e) {
-            console.log(`Could not access persist_data.yml file. Exiting at code 5.`);
+            console.log(`Failed to access persistence file. Assuming unreachable.\nExiting at code 5.`)
             process.exit(5);
         }
 
@@ -110,10 +119,10 @@ export async function update(configs: any) {
 
 export async function yaml_update(newvars: any) {
     // Update persist_data with new data only if persist_data already contains key.
-    let temp: { pastimgs: string[] } = persist_data;
+    let temp: any = persist_data;
     Object.keys(persist_data).forEach(key => { if(newvars[key] !== undefined) {(<any> temp)[key] = newvars[key];}; });
     // Shift past image array until length <= 5 if length > 5
-    if(temp.pastimgs.length > 5) { for(let i = 0; i > temp.pastimgs.length-5; i++) { temp.pastimgs.shift(); }; };
+    if(temp.pastimgs.length > 5) { for(let i = 0; i > temp.pastimgs.length-5; i++) { fs.unlinkSync(`./public/uploads/${temp.pastimgs.shift()}`); }; };
     persist_data = temp;
     fs.writeFileSync(`persist_data.yml`,YAML.stringify(persist_data),`utf8`);
 }

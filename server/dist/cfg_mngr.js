@@ -52,11 +52,11 @@ exports.configuration = {
     endCol: "fff",
 };
 exports.persist_data = {
-    pastimgs: new Array()
+    pastimgs: new Array(),
 };
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             if (!fs.existsSync(path.join(process.cwd(), './public'))) {
                 console.log(`[INITIALIZATION WARN]: Public folder missing. Creating new directory.`);
                 fs.mkdir(path.join(process.cwd(), './public'), (err) => {
@@ -79,7 +79,6 @@ function init() {
                     if (err) {
                         console.log(`[INITIALIZATION WARN] Configuration file ${path.join(process.cwd(), "./settings.conf")} missing. Writing default configurations in place of config file.`);
                         fs.writeFileSync(`./settings.conf`, JSON.stringify(exports.configuration));
-                        resolve(exports.configuration);
                         return;
                     }
                     ;
@@ -91,7 +90,6 @@ function init() {
                     catch (e) {
                         console.log(`[INITIALIZATION ERROR] Unable to parse JSON from settings config. Overwriting file with default configurations.`);
                         fs.writeFileSync(`./settings.conf`, JSON.stringify(exports.configuration));
-                        resolve(exports.configuration);
                         return;
                     }
                     Object.keys(exports.configuration).forEach(key => {
@@ -104,7 +102,7 @@ function init() {
                         }
                     });
                     fs.writeFileSync('./settings.conf', JSON.stringify(filecontents));
-                    console.log(`[INITIALIZATION SUCCESS]: Current Configuraitons\n\n`, exports.configuration, `\n`);
+                    console.log(`[INITIALIZATION SUCCESS]: Settings file loaded successfully.`);
                 }));
             }
             catch (e) {
@@ -112,41 +110,43 @@ function init() {
                 process.exit(5);
             }
             try {
-                fs.access(`persist_data.yml`, (err) => __awaiter(this, void 0, void 0, function* () {
+                fs.access('./persist_data.yml', (err) => __awaiter(this, void 0, void 0, function* () {
                     if (err) {
-                        fs.writeFileSync(`persist_data.yml`, YAML.stringify(``), `utf8`);
-                        console.log(`File doesn't exist. Creating blank YAML document.`);
+                        console.log(`[INITIALIZATION WARN] Data Persistence file ${path.join(process.cwd(), "./persist_data.yml")} missing. Writing default configurations.`);
+                        fs.writeFileSync(`./persist_data.yml`, YAML.stringify(exports.persist_data));
                         return;
                     }
-                    else {
-                        let ymlcontent;
-                        try {
-                            ymlcontent = YAML.parse(fs.readFileSync(`persist_data.yml`, `utf8`));
-                            console.log(`[INITIALIZATION SUCCESS]: YAML Parse Success.`);
-                        }
-                        catch (e) {
-                            console.log(`[INITIALIZATION ERROR]: Failed to parse YAML from persist_data.yml. Overwriting with blank YAML document.`);
-                            fs.writeFileSync(`persist_data.yml`, YAML.stringify(``), `utf8`);
-                            return;
-                        }
-                        console.log(ymlcontent);
-                        Object.keys(exports.persist_data).forEach(key => { if (ymlcontent[key] === undefined) {
-                            console.log(`Persist_Data is missing key ${key}. Writing default of `, exports.persist_data[key]);
+                    ;
+                    console.log(`[INITIALIZATION INFO] Persistence file exists. Reading data from file.`);
+                    let ymlcontents = {};
+                    try {
+                        ymlcontents = YAML.parse(fs.readFileSync(`./persist_data.yml`, `utf8`));
+                    }
+                    catch (e) {
+                        console.log(`[INITIALIZATION ERROR] Unable to parse YAML from persistence file. Overwriting file with default configurations.`);
+                        fs.writeFileSync(`./persist_data.yml`, YAML.stringify(exports.persist_data));
+                        return;
+                    }
+                    Object.keys(exports.persist_data).forEach(key => {
+                        if (ymlcontents[key] === undefined) {
+                            console.log(`[INITIALIZATION INFO]: Config file missing ${key}. Using default value: ${exports.persist_data[key]}`);
+                            ymlcontents[key] = exports.persist_data[key];
                         }
                         else {
-                            exports.persist_data[key] == ymlcontent[key];
-                            console.log(exports.persist_data[key]);
-                        } });
-                        fs.writeFileSync(`persist_data.yml`, YAML.stringify(exports.persist_data), `utf8`);
-                    }
+                            exports.persist_data[key] = ymlcontents[key];
+                        }
+                        ;
+                    });
+                    fs.writeFileSync('./persist_data.yml', YAML.stringify(exports.persist_data));
+                    console.log(`[INITIALIZATION SUCCESS]: Loaded persist_data.yml file.\n`);
                 }));
             }
             catch (e) {
-                console.log(`Could not access persist_data.yml file. Exiting at code 5.`);
+                console.log(`Failed to access persistence file. Assuming unreachable.\nExiting at code 5.`);
                 process.exit(5);
             }
             resolve(exports.configuration);
-        });
+        }));
     });
 }
 exports.init = init;
@@ -170,7 +170,7 @@ function yaml_update(newvars) {
         // Shift past image array until length <= 5 if length > 5
         if (temp.pastimgs.length > 5) {
             for (let i = 0; i > temp.pastimgs.length - 5; i++) {
-                temp.pastimgs.shift();
+                fs.unlinkSync(`./public/uploads/${temp.pastimgs.shift()}`);
             }
             ;
         }
