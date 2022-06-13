@@ -100,6 +100,8 @@ export async function init() {
                     };
                 });
 
+                pruneimgs();
+
                 fs.writeFileSync('./persist_data.yml',YAML.stringify(persist_data));
                 console.log(`[INITIALIZATION SUCCESS]: Loaded persist_data.yml file.\n`);
             })
@@ -119,10 +121,15 @@ export async function update(configs: any) {
 
 export async function yaml_update(newvars: any) {
     // Update persist_data with new data only if persist_data already contains key.
-    let temp: any = persist_data;
-    Object.keys(persist_data).forEach(key => { if(newvars[key] !== undefined) {(<any> temp)[key] = newvars[key];}; });
+    Object.keys(persist_data).forEach(key => { if(newvars[key] !== undefined) {(<any> persist_data)[key] = newvars[key];}; });
     // Shift past image array until length <= 5 if length > 5
-    if(temp.pastimgs.length > 5) { for(let i = 0; i > temp.pastimgs.length-5; i++) { fs.unlinkSync(`./public/uploads/${temp.pastimgs.shift()}`); }; };
-    persist_data = temp;
+    pruneimgs();
     fs.writeFileSync(`persist_data.yml`,YAML.stringify(persist_data),`utf8`);
+}
+
+function pruneimgs() {
+    if(persist_data.pastimgs.length > 5) { for(let i = 0; i < persist_data.pastimgs.length-5; i++) { let targetname = persist_data.pastimgs[i]; fs.unlinkSync(`./public/uploads/${targetname}`); console.log(`Deleting ${targetname} from public/uploads folder`); }; };
+    for(let i = 0; i < 5; i++) { persist_data.pastimgs.unshift(<string> persist_data.pastimgs.shift()) };
+    let lastfive = []; for(let i = 0; i < Math.min(5,persist_data.pastimgs.length); i++) { let targetimg = persist_data.pastimgs[persist_data.pastimgs.length-5+i]; if(targetimg !== null) lastfive.push(targetimg); };
+    persist_data.pastimgs = lastfive;
 }

@@ -137,6 +137,7 @@ function init() {
                         }
                         ;
                     });
+                    pruneimgs();
                     fs.writeFileSync('./persist_data.yml', YAML.stringify(exports.persist_data));
                     console.log(`[INITIALIZATION SUCCESS]: Loaded persist_data.yml file.\n`);
                 }));
@@ -163,20 +164,35 @@ exports.update = update;
 function yaml_update(newvars) {
     return __awaiter(this, void 0, void 0, function* () {
         // Update persist_data with new data only if persist_data already contains key.
-        let temp = exports.persist_data;
         Object.keys(exports.persist_data).forEach(key => { if (newvars[key] !== undefined) {
-            temp[key] = newvars[key];
+            exports.persist_data[key] = newvars[key];
         } ; });
         // Shift past image array until length <= 5 if length > 5
-        if (temp.pastimgs.length > 5) {
-            for (let i = 0; i > temp.pastimgs.length - 5; i++) {
-                fs.unlinkSync(`./public/uploads/${temp.pastimgs.shift()}`);
-            }
-            ;
-        }
-        ;
-        exports.persist_data = temp;
+        pruneimgs();
         fs.writeFileSync(`persist_data.yml`, YAML.stringify(exports.persist_data), `utf8`);
     });
 }
 exports.yaml_update = yaml_update;
+function pruneimgs() {
+    if (exports.persist_data.pastimgs.length > 5) {
+        for (let i = 0; i < exports.persist_data.pastimgs.length - 5; i++) {
+            let targetname = exports.persist_data.pastimgs[i];
+            fs.unlinkSync(`./public/uploads/${targetname}`);
+            console.log(`Deleting ${targetname} from public/uploads folder`);
+        }
+        ;
+    }
+    ;
+    for (let i = 0; i < 5; i++) {
+        exports.persist_data.pastimgs.unshift(exports.persist_data.pastimgs.shift());
+    }
+    ;
+    let lastfive = [];
+    for (let i = 0; i < Math.min(5, exports.persist_data.pastimgs.length); i++) {
+        let targetimg = exports.persist_data.pastimgs[exports.persist_data.pastimgs.length - 5 + i];
+        if (targetimg !== null)
+            lastfive.push(targetimg);
+    }
+    ;
+    exports.persist_data.pastimgs = lastfive;
+}

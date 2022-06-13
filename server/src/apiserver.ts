@@ -38,10 +38,12 @@ apiserver.post('/upload', async (req: any, res: any) => {
             let pastimgs: string[] = persist_data.pastimgs;
             if(err) {
                 console.log(`\x1b[32m[API UPLOAD]\x1b[0m: \x1b[36m${file.name}\x1b[0m \x1b[33m${file.size}\x1b[0m`);
+                if(file.size > 1073741824) { console.log(`Rejecting File Download : File Size Too Large.`); return; }
                 fs.writeFile(path.join(process.cwd(),`./public/uploads/${file.name}`),file.data,() => {
                     console.log(`\x1b[32mFile Upload Complete.\x1b[0m`);
                     update({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
                     ioserver.emit(`background`,`true true ${configs.bgHorizontal} ${file.name}`);
+                    console.log(`Background set to downloaded file.`);
                     res.write(`File Upload Complete`);
                     pastimgs.push(file.name);
                     yaml_update({ pastimgs: pastimgs });
@@ -49,6 +51,7 @@ apiserver.post('/upload', async (req: any, res: any) => {
                 });
                 return;
             }
+            console.log(`Rejecting File Download : File of same name already exists.`);
             if(pastimgs.indexOf(file.name,0) !== -1) {
                 pastimgs.splice(pastimgs.indexOf(file.name),1);
                 pastimgs.push(file.name);
@@ -57,6 +60,7 @@ apiserver.post('/upload', async (req: any, res: any) => {
             }
             yaml_update({ pastimgs: pastimgs });
             ioserver.emit(`background`,`true true ${configs.bgHorizontal} ${file.name}`);
+            console.log(`Background set to local file.`);
             update({ bgImage: file.name, bgImageLocal: true, bgUseImage: true });
             res.write(`File already exists in server directory with requested file name.`); 
             res.end(); 
